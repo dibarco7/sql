@@ -2,7 +2,8 @@
 /* SECTION 2 */
 /* UofT-DSI-Cohort7: Diogo Brian Barco (dibarco7)
 /* attempted on Fri 08-Aug-2025 @ 14h15 during office hours w/ Niyaz Nazari
-/* completed on Sat 09-Aug-2025 @ xxhxx during office hours
+/* completed on Sat 09-Aug-2025 @ 12h04 during office hours (missing Date section)
+/* completed Date section on Sun 10-Aug-2025 @ 19h15
 
 --SELECT
 /* 1. Write a query that returns everything in the customer table. */
@@ -140,6 +141,19 @@ GROUP BY c.customer_id
 HAVING total_spent >= 2000
 ORDER BY total_spent DESC
 
+-- T E S T I N G: this shows the list of customers only (i.e. without $ amounts)
+SELECT customer_last_name, customer_first_name
+--SUM(quantity * cost_to_customer_per_qty) AS total_spent
+
+FROM customer_purchases AS cp
+INNER JOIN customer AS c
+	ON cp.customer_id = c.customer_id
+GROUP BY c.customer_id
+HAVING SUM(quantity * cost_to_customer_per_qty) >= 2000
+ORDER BY customer_last_name, customer_first_name ASC
+-- E N D   T E S T I N G
+
+
 --Temp Table
 /* 1. Insert the original vendor table into a temp.new_vendor and then add a 10th vendor: 
 Thomass Superfood Store, a Fresh Focused store, owned by Thomas Rosenthal
@@ -165,12 +179,17 @@ VALUES (10, 'Thomass Superfood Store', 'Fresh Focused', 'Thomas', 'Rosenthal');
 /* stopped here on Sat 09-Aug-2025 @ 11h15
    will try Date if I have time later today or tomorrow */
 
+/* continuing on Sun 10-Aug-2025 @ 18h00 */
+
 -- Date
 /*1. Get the customer_id, month, and year (in separate columns) of every purchase in the customer_purchases table.
 
 HINT: you might need to search for strfrtime modifers sqlite on the web to know what the modifers for month 
 and year are! */
 
+SELECT customer_id, STRFTIME('%m', market_date) AS month, STRFTIME('%Y', market_date) AS year
+FROM customer_purchases
+ORDER BY customer_id
 
 
 /* 2. Using the previous query as a base, determine how much money each customer spent in April 2022. 
@@ -178,4 +197,15 @@ Remember that money spent is quantity*cost_to_customer_per_qty.
 
 HINTS: you will need to AGGREGATE, GROUP BY, and filter...
 but remember, STRFTIME returns a STRING for your WHERE statement!! */
+
+SELECT customer_last_name, customer_first_name, STRFTIME('%m-%Y', market_date) AS sales_period,
+SUM(quantity * cost_to_customer_per_qty) AS amount_spent
+FROM customer_purchases AS cp
+INNER JOIN customer AS c
+	ON cp.customer_id = c.customer_id
+WHERE STRFTIME('%Y', cp.market_date) = '2022' AND STRFTIME('%m', cp.market_date) = '04'
+GROUP BY c.customer_id
+ORDER BY customer_last_name ASC, customer_first_name ASC
+
+/* completed Sun 10-Aug-2025 @ 19h15 */
 
