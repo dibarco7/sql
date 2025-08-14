@@ -1,5 +1,7 @@
 /* ASSIGNMENT 2 */
 /* SECTION 2 */
+/* attempted by D. Barco on Wed 13-Aug-2025 @ 14h20 */
+/* initial submit (commit & push) on Wed 13-Aug-2025 @ 20h56 */
 
 -- COALESCE
 /* 1. Our favourite manager wants a detailed long list of products, but is afraid of tables! 
@@ -20,6 +22,9 @@ The `||` values concatenate the columns into strings.
 Edit the appropriate columns -- you're making two edits -- and the NULL rows will be fixed. 
 All the other rows will remain the same.) */
 
+SELECT
+product_name || ' , ' || COALESCE(product_size,' ') || ' , ' || COALESCE(product_qty_type, 'unit')
+FROM product
 
 
 --Windowed Functions
@@ -32,16 +37,32 @@ each new market date for each customer, or select only the unique market dates p
 (without purchase details) and number those visits. 
 HINT: One of these approaches uses ROW_NUMBER() and one uses DENSE_RANK(). */
 
+/* ROW_NUMBER() does not appear to be working correctly :-(
+SELECT *,
+ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY market_date ASC) AS Visit_No
+FROM customer_purchases
+ORDER BY customer_id, market_date */
 
+SELECT *,
+DENSE_RANK() OVER (PARTITION BY customer_id ORDER BY market_date ASC) AS Visit_No
+FROM customer_purchases
 
 /* 2. Reverse the numbering of the query from a part so each customer’s most recent visit is labeled 1, 
 then write another query that uses this one as a subquery (or temp table) and filters the results to 
 only the customer’s most recent visit. */
-
-
+SELECT *
+FROM
+(
+SELECT DISTINCT customer_id, market_date,
+DENSE_RANK() OVER (PARTITION BY customer_id ORDER BY market_date DESC) AS Visit_No
+FROM customer_purchases
+)
+WHERE Visit_No = 1
 
 /* 3. Using a COUNT() window function, include a value along with each row of the 
 customer_purchases table that indicates how many different times that customer has purchased that product_id. */
+
+-- stopped here Wed 13-Aug-2025 @ 17h45 before SQL Class 5
 
 
 
