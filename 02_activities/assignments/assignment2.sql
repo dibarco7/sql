@@ -2,6 +2,7 @@
 /* SECTION 2 */
 /* attempted by D. Barco on Wed 13-Aug-2025 @ 14h20 */
 /* initial submit (commit & push) on Wed 13-Aug-2025 @ 20h56 */
+/* second submit (commit & push) on Fri 15-Aug-2025 @ 17h00 */
 
 -- COALESCE
 /* 1. Our favourite manager wants a detailed long list of products, but is afraid of tables! 
@@ -43,9 +44,18 @@ ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY market_date ASC) AS Visit_N
 FROM customer_purchases
 ORDER BY customer_id, market_date */
 
+--using ROW_NUMBER (does not work!)
+SELECT *,
+ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY market_date ASC) AS Visit_No
+FROM customer_purchases
+--GROUP BY market_date
+ORDER BY customer_id, market_date
+
+--using DENSE_RANK (works)
 SELECT *,
 DENSE_RANK() OVER (PARTITION BY customer_id ORDER BY market_date ASC) AS Visit_No
 FROM customer_purchases
+ORDER BY customer_id, market_date;
 
 /* 2. Reverse the numbering of the query from a part so each customer’s most recent visit is labeled 1, 
 then write another query that uses this one as a subquery (or temp table) and filters the results to 
@@ -63,7 +73,11 @@ WHERE Visit_No = 1
 customer_purchases table that indicates how many different times that customer has purchased that product_id. */
 
 -- stopped here Wed 13-Aug-2025 @ 17h45 before SQL Class 5
-
+-- continuing Fri 15-Aug-2025 @ 11h30 with help from Moniz Chan @ 14h30
+SELECT *,
+COUNT(product_id) OVER (PARTITION BY customer_id, /*market_date,*/ product_id) AS purchase_count
+FROM customer_purchases
+ORDER BY customer_id, market_date, product_id
 
 
 -- String manipulations
@@ -78,10 +92,24 @@ Remove any trailing or leading whitespaces. Don't just use a case statement for 
 
 Hint: you might need to use INSTR(product_name,'-') to find the hyphens. INSTR will help split the column. */
 
+SELECT product_name,
+TRIM
+(
+SUBSTR(product_name,
+(LENGTH(product_name)-INSTR(product_name,'-'))*(-1),
+LENGTH(product_name)-INSTR(product_name,'-'))
+) AS 'description'
+FROM product
 
 
 /* 2. Filter the query to show any product_size value that contain a number with REGEXP. */
 
+--**Note: this question (REGEXP) removed by Thomas Rosenthal (however, I attempted anyway)
+
+SELECT *
+FROM product
+WHERE product_size REGEXP '[0-9]'
+ORDER BY product_id
 
 
 -- UNION
@@ -93,6 +121,11 @@ HINT: There are a possibly a few ways to do this query, but if you're struggling
 "best day" and "worst day"; 
 3) Query the second temp table twice, once for the best day, once for the worst day, 
 with a UNION binding them. */
+
+SELECT *
+FROM customer_purchases
+/* will try on Sunday night (if time permits) */
+
 
 
 
@@ -111,6 +144,9 @@ How many customers are there (y).
 Before your final group by you should have the product of those two queries (x*y).  */
 
 
+/* will try on Sunday night (if time permits) */
+
+
 
 -- INSERT
 /*1.  Create a new table "product_units". 
@@ -118,11 +154,18 @@ This table will contain only products where the `product_qty_type = 'unit'`.
 It should use all of the columns from the product table, as well as a new column for the `CURRENT_TIMESTAMP`.  
 Name the timestamp column `snapshot_timestamp`. */
 
+DROP TABLE IF EXISTS temp.product_units;
+CREATE TABLE temp.product_units AS
+SELECT *, CURRENT_TIMESTAMP AS 'snapshot_timestamp'
+FROM product
+WHERE product_qty_type = 'unit'
 
 
 /*2. Using `INSERT`, add a new row to the product_units table (with an updated timestamp). 
 This can be any product you desire (e.g. add another record for Apple Pie). */
 
+INSERT INTO temp.product_units(product_id, product_name, product_size, product_category_id, product_qty_type, snapshot_timestamp)
+VALUES (10, 'Eggs', '1-1/2 doz', 6, 'unit', CURRENT_TIMESTAMP)
 
 
 -- DELETE
@@ -130,6 +173,14 @@ This can be any product you desire (e.g. add another record for Apple Pie). */
 
 HINT: If you don't specify a WHERE clause, you are going to have a bad time.*/
 
+DELETE FROM temp.product_units
+WHERE product_id = 10
+AND snapshot_timestamp =
+(
+	SELECT MIN(snapshot_timestamp)
+	FROM temp.product_units
+	WHERE product_id = 10
+)
 
 
 -- UPDATE
@@ -149,6 +200,7 @@ Finally, make sure you have a WHERE statement to update the right row,
 	you'll need to use product_units.product_id to refer to the correct row within the product_units table. 
 When you have all of these components, you can run the update statement. */
 
+ALTER TABLE temp.product_units
+ADD current_quantity INT
 
-
-
+/* will try on Sunday night (if time permits) */
