@@ -55,6 +55,28 @@ The store wants to keep customer addresses. Propose two architectures for the CU
 
 ```
 Your answer...
+<START OF RESPONSE>
+## attempted on Wed 13-Aug-2025 @ 13h45 [Reference = https://en.wikipedia.org/wiki/Slowly_changing_dimension]
+Architecture #1 - retain changes a.k.a. "Type 2 SCD" (slowly changing dimensions)
+---------------
+In this architecture, we, the system architect, require that the CUSTOMER_ADDRESS table preserve historical data i.e. retain any changes to address information for an existing customer. So, rather than deleting or updating the address values of a given customer (row) in the table, another row would be added for the same customer with the updated address. In order to be effective in tracking historically, we would also need to consider adding an additional column for each customer that specifies, for example, the "version" of the address change -- this can be as simple as numerical increment e.g. 0, 1, 2, etc. for each modification to the address.
+|-------------------CUSTOMER_ADDRESS------------------|
+|customer_id   |   name   |   address   |   version   |
+|------------------------------------------------------
+|     81       |  <data>  |    <data>   |      0      | <-- This customer moves / changes address!
+|     82       |  <data>  |    <data>   |      0      |
+|     83       |  <data>  |    <data>   |      0      |
+|     81       |  <data>  | <new addr.> |      1      | <-- Here, customer 81 address is added (old address "version 0" continues to be preserved in the table)
+
+An alternative to a "version" field could be a "date valid" field that specifies the range of validity for the address. For example, many businesses could maintain such a field (and update as needed) in order to ensure that their customer contact (address) info continues to be verified annually, for example.
+
+Architecture #2 - overwrites changes a.k.a. "Type 1 SCD" (slowly changing dimensions)
+---------------
+In this architecture, a decision has been made that it is not necessary to keep historical track of changes to customer address. So, here the address field can simply be updated in the same customer record (row in the table) with the new data. The downside is that the old data will be lost. However, this is a design issue where we have decided that losing outdated address information is not important in order to run the business effectively. In fact, it will reduce unneccessary clutter in the database table, likely improving efficiency.
+
+## stopped on Wed 13-Aug-2025 @ 14h10
+<END OF RESPONSE>
+
 ```
 
 ***
